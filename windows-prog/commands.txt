@@ -1,0 +1,11 @@
+gcc -s -o simple.exe simple.o -L../../lib -lcurl -L../../openssl-0.9.8g/out 
+-lssl -lcrypto -lgdi32 -L../../zlib-1.2.3 -lz -lwldap32 -lws2_32 -lwinmm
+
+gcc -I. -I../.. -I../../include -I../../lib -I"../../openssl-0.9.8g/outinc" -I".
+./../zlib-1.2.3" -g -O2 -Wall -DCURL_STATICLIB -DUSE_SSLEAY -DHAVE_OPENSSL_ENGIN
+E_H -DHAVE_LIBZ -DHAVE_ZLIB_H -c simple.c
+
+   gcc -c hello.c
+   gcc -c -DBUILD_DLL dllfct.c
+   gcc -shared -o tst.dll -Wl,--out-implib,libtstdll.a dllfct.o
+   gcc -o hello.exe hello.o -L./ -ltstdll

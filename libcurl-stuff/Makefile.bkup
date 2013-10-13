@@ -1,0 +1,8 @@
+#Makefile for test.c
+
+test.exe: test.o
+	gcc -s -o test.exe test.o -lcurl -lz -lwldap32 -lws2_32
+
+test.o: test.c
+	gcc -O2 -Wall -DCURL_STATICLIB -DHAVE_LIBZ -DHAVE_ZLIB_H -c test.c
+

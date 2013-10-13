@@ -1,0 +1,172 @@
+#include <stdio.h>
+#include <ctype.h>
+
+int isop(char c);
+int assoc(char c);
+int prec(char a, char b);
+void push(char c);
+char pop(void);
+char top(void);
+
+#define BUFF_SIZE 1048576 // 1MiB
+char buffer[BUFF_SIZE];
+
+int main(void) {
+    int i, nread;
+    char token;
+    
+    do {
+        nread = fread(buffer, sizeof(char), BUFF_SIZE, stdin);
+        for(i = 0; i < nread; i++) {
+            for(; (token = buffer[i]) != '\n' && buffer[i] != '\0' && i < nread; i++) {
+                // if token is a space then ignore
+                if(token == ' ')
+                    continue;
+                
+                // if it's a letter, number or dot then echo
+                if(isalnum(token) || token == '.')
+                    putchar(token);
+                
+                // if it's an operator...
+                else if(isop(token)) {
+                    putchar(' ');
+                    while(isop(top()) && 
+                        // the operator is left associative and its precedence is less than or equal to top's
+                        (assoc(token) == -1 && (prec(token, top()) == -1 || prec(token, top()) == 0)) || 
+                        // the operator is right associative and its precedence is less than top's
+                        (assoc(token) == 1 && prec(token, top()) == -1)) {
+                            putchar(pop());
+                            putchar(' ');
+                    }
+                    push(token);
+                }
+                
+                // if it's a left parentheses then push to stack
+                else if(token == '(')
+                    push(token);
+                
+                // if it's a right parentheses, then pop operators
+                // until the left parentheses... and pop it and discard it
+                else if(token == ')') {
+                    while(top() != '(') {
+                        putchar(' ');
+                        putchar(pop());
+                    }
+                    
+                    // pop the left parenthesis
+                    pop();
+                }
+            }
+            
+            if(i >= nread)
+                continue;
+            else {
+                putchar(' ');
+                
+                // pop everything in stack
+                while(top() != EOF) {
+                    putchar(pop());
+                    putchar(' ');
+                }
+                
+                putchar('\n');
+            }
+        }
+    } while(nread == BUFF_SIZE);
+    
+    // pop everything one last time
+    putchar(' ');
+    while(top() != EOF) {
+        putchar(pop());
+        putchar(' ');
+    }
+    
+    return 0;
+}
+
+int isop(char c) {
+    if(c == '+' || c == '-' || c == '*' || c == '/' || c == '^')
+        return 1;
+    else
+        return 0;
+}
+
+int assoc(char c) {
+    if(c == '^') // right associatives
+        return 1;
+    else
+        return -1;
+}
+
+int prec(char a, char b) {
+    int av, bv;
+    
+    if(a == b)
+        return 0;
+    
+    switch(a) {
+        case '+':
+            av = 0;
+            break;
+        case '-':
+            av = 0;
+            break;
+        case '*':
+            av = 1;
+            break;
+        case '/':
+            av = 1;
+            break;
+        case '^':
+            av = 2;
+            break;
+    }
+    
+    switch(b) {
+        case '+':
+            bv = 0;
+            break;
+        case '-':
+            bv = 0;
+            break;
+        case '*':
+            bv = 1;
+            break;
+        case '/':
+            bv = 1;
+            break;
+        case '^':
+            bv = 2;
+            break;
+    }
+    
+    if(av == bv)
+        return 0;
+    else if(av < bv)
+        return -1;
+    else
+        return 1;
+    
+}
+
+int i;
+char stack[BUFF_SIZE];
+
+void push(char c) {
+    stack[i++] = c;
+}
+
+char pop(void) {
+    if(!i)
+        return EOF;
+    
+    return stack[--i];
+}
+
+char top(void) {
+    if(!i)
+        return EOF;
+    
+    return stack[i - 1];
+}
+
